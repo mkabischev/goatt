@@ -1,0 +1,30 @@
+common:
+  delay: 1s
+  protocol: http # nats
+  server: http://localhost:8080 # "gnats://gnatsd_server:4222"
+  target: /users
+  method: POST # GET,PUT / request/publish
+
+constants:
+  src: "ms_gateway"
+
+# available variables
+# {{.Constants.<CONSTANT_NAME>}} - get constant value by name. ex.: {{.Constants.src}}
+# {{.UUID}} - generate new uuid every request
+# {{.Step.UUID}} - generate new uuid once per step
+# {{.Session.UUID}} - generate new uuid once per session
+# {{.Result.body.<NAME>}} - get last result field
+
+steps:
+  - body: |-
+      {
+        "id": "{{.UUID}}",
+        "error": {},
+        "src": "{{.Vars.src}}",
+        "body": {
+          "id": "{{.Session.UUID}}",
+          "first_name": "Abi",
+          "last_name": "Abe"
+        },
+        "meta": {}
+      }

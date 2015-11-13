@@ -1,0 +1,42 @@
+common:
+  delay: 1s
+  protocol: nats
+  server: "gnats://gnatsd:4222"
+  method: request # request/publish
+
+constants:
+  src: "gateway"
+
+# available variables
+# {{.Constants.<CONSTANT_NAME>}} - get constant value by name. ex.: {{.Constants.src}}
+# {{.UUID}} - generate new uuid every request
+# {{.Step.UUID}} - generate new uuid once per step
+# {{.Session.UUID}} - generate new uuid once per session
+# {{.Result.<NAME>.<NAME>}} - get last result field
+
+steps:
+  - target: /auth/auth
+    body: |-
+      {
+        "id": "{{.UUID}}",
+        "error": {},
+        "src": "{{.Constants.src}}",
+        "body": {
+          "id": "{{.Step.UUID}}",
+          "first_name": "Abi",
+          "last_name": "Abe",
+          "email": "{{.Step.UUID}}@gmail.com"
+        },
+        "meta": {}
+      }
+  - target: /auth/get
+    body: |-
+      {
+        "id": "{{.UUID}}",
+        "error": {},
+        "src": "{{.Constants.src}}",
+        "body": {
+          "id": "{{.Result.body.id}}"
+        },
+        "meta": {}
+      }
