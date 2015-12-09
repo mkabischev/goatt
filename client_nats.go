@@ -11,12 +11,12 @@ import (
 
 var timeout = 500 * time.Millisecond
 
-type natsClient struct {
+type NatsClient struct {
 	natsConn   *nats.Conn
 	natsEnConn *nats.EncodedConn
 }
 
-func (nc *natsClient) Init(server string) {
+func (nc *NatsClient) Init(server, service string) {
 	var err error
 	nc.natsConn, err = nats.Connect(server)
 	if err != nil {
@@ -29,10 +29,10 @@ func (nc *natsClient) Init(server string) {
 	//defer ec.Close()
 }
 
-func (nc *natsClient) request(ctx *Context, step step, dryRun bool) {
+func (nc *NatsClient) Request(ctx *Context, step ScenarioStep, dryRun bool) {
 	var err error
 
-	var req jsonMap
+	var req JsonMap
 	body, err := ctx.Evaluate(string(step.Msg))
 	msg := []byte(body)
 	if err := json.Unmarshal(msg, &req); err != nil {
@@ -64,9 +64,9 @@ func (nc *natsClient) request(ctx *Context, step step, dryRun bool) {
 	}
 }
 
-func (nc *natsClient) publish(ctx *Context, step step, dryRun bool) {
+func (nc *NatsClient) Publish(ctx *Context, step ScenarioStep, dryRun bool) {
 	var err error
-	var req jsonMap
+	var req JsonMap
 	body, err := ctx.Evaluate(string(step.Msg))
 	msg := []byte(body)
 	if err := json.Unmarshal(msg, &req); err != nil {
@@ -82,7 +82,7 @@ func (nc *natsClient) publish(ctx *Context, step step, dryRun bool) {
 	}
 }
 
-func (nc *natsClient) subscribe(ctx *Context, step step, dryRun bool) {
+func (nc *NatsClient) Subscribe(ctx *Context, step ScenarioStep, dryRun bool) {
 	fmt.Fprintf(os.Stderr, "\n")
 	if step.Msg != "" {
 		nc.natsEnConn.QueueSubscribe(step.Subject, step.Msg, nc.handler)
@@ -93,6 +93,6 @@ func (nc *natsClient) subscribe(ctx *Context, step step, dryRun bool) {
 	<-c
 }
 
-func (nc *natsClient) handler(msg *nats.Msg) {
+func (nc *NatsClient) handler(msg *nats.Msg) {
 	fmt.Fprintf(os.Stderr, "handle message [%s]", msg)
 }

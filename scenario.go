@@ -8,9 +8,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type jsonMap map[string]interface{}
+type JsonMap map[string]interface{}
 
-type step struct {
+type ScenarioStep struct {
 	Subject string "target"
 	Type    string "type"
 	Msg     string "body"
@@ -19,7 +19,7 @@ type step struct {
 type yamlScenario struct {
 	Common    map[string]interface{} "common"
 	Constants map[string]interface{} "constants"
-	Steps     []step                 ",flow"
+	Steps     []ScenarioStep         ",flow"
 }
 
 func (ys *yamlScenario) load(contents []byte) error {
@@ -31,8 +31,8 @@ func (ys *yamlScenario) load(contents []byte) error {
 }
 
 func (ys *yamlScenario) play(dryRun bool) error {
-	client := new(natsClient)
-	client.Init(ys.Common["server"].(string))
+	client := MQClient
+	client.Init(ys.Common["server"].(string), ys.Common["service"].(string))
 
 	timeout := 1 * time.Microsecond
 	tms := ys.Common["timeout"]
@@ -64,11 +64,11 @@ func (ys *yamlScenario) play(dryRun bool) error {
 		}
 		switch requestType {
 		case "publish":
-			client.publish(ctx, step, dryRun)
+			client.Publish(ctx, step, dryRun)
 		case "request":
-			client.request(ctx, step, dryRun)
+			client.Request(ctx, step, dryRun)
 		case "subscription":
-			client.subscribe(ctx, step, dryRun)
+			client.Subscribe(ctx, step, dryRun)
 		default:
 			fmt.Fprintf(os.Stderr, "unknown mode")
 		}

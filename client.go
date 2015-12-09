@@ -3,6 +3,8 @@ package main
 import ()
 
 type Client interface {
-	Init()
-	SendMsg()
+	Init(string, string)
+	Publish(*Context, ScenarioStep, bool)
+	Request(*Context, ScenarioStep, bool)
+	Subscribe(*Context, ScenarioStep, bool)
 }

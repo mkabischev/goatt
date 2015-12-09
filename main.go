@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+var MQClient Client
+
 func main() {
 	// debug := flag.Bool("debug", false, "debug mode")
 	dryRun := flag.Bool("dry-run", false, "dry-run mode")
@@ -16,8 +18,16 @@ func main() {
 	requestSubject := flag.String("request", "", "nats request subject")
 	subscription := flag.String("subscription", "", "nats subscription subject")
 	queue := flag.String("queue", "", "nats queue")
+	clientType := flag.String("client", "nats", "queue")
 
 	flag.Parse()
+
+	switch *clientType {
+	case "sqs":
+		MQClient = new(SQSClient)
+	case "nats":
+		MQClient = new(NatsClient)
+	}
 
 	scenario := newScenario()
 
@@ -30,7 +40,7 @@ func main() {
 		scenario.load(contents)
 	case *publishSubject != "":
 		contents, _ := loadFile(flag.Args()[0])
-		s := step{
+		s := ScenarioStep{
 			Subject: *publishSubject,
 			Type:    "publish",
 			Msg:     string(contents),
@@ -38,14 +48,14 @@ func main() {
 		scenario.Steps = append(scenario.Steps, s)
 	case *requestSubject != "":
 		contents, _ := loadFile(flag.Args()[0])
-		s := step{
+		s := ScenarioStep{
 			Subject: *requestSubject,
 			Type:    "request",
 			Msg:     string(contents),
 		}
 		scenario.Steps = append(scenario.Steps, s)
 	case *subscription != "":
-		s := step{
+		s := ScenarioStep{
 			Subject: *subscription,
 			Type:    "subscribe",
 			Msg:     *queue,
