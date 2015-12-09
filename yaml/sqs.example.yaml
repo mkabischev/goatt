@@ -1,7 +1,7 @@
 common:
   service: ms_providers
   delay: 1s
-  protocol: nats
+  protocol: sqs
   server: "juno_sqs:9324"
   method: request # request/publish
 

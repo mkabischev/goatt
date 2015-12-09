@@ -11,9 +11,10 @@ import (
 type JsonMap map[string]interface{}
 
 type ScenarioStep struct {
-	Subject string "target"
-	Type    string "type"
-	Msg     string "body"
+	Subject  string "target"
+	Type     string "type"
+	Msg      string "body"
+	Protocol string "protocol"
 }
 
 type yamlScenario struct {
@@ -31,8 +32,8 @@ func (ys *yamlScenario) load(contents []byte) error {
 }
 
 func (ys *yamlScenario) play(dryRun bool) error {
-	client := MQClient
-	client.Init(ys.Common["server"].(string), ys.Common["service"].(string))
+	ClientNATS.Init(ys.Common["server"].(string), ys.Common["service"].(string))
+	ClientSQS.Init(ys.Common["server"].(string), ys.Common["service"].(string))
 
 	timeout := 1 * time.Microsecond
 	tms := ys.Common["timeout"]
@@ -40,6 +41,11 @@ func (ys *yamlScenario) play(dryRun bool) error {
 		if value, err := time.ParseDuration(tms.(string)); err == nil {
 			timeout = value
 		}
+	}
+
+	var protocol string
+	if proto := ys.Common["protocol"]; proto != nil {
+		protocol = proto.(string)
 	}
 
 	ctx := InitContext(ys.Constants)
@@ -62,6 +68,22 @@ func (ys *yamlScenario) play(dryRun bool) error {
 		if step.Type != "" {
 			requestType = step.Type
 		}
+
+		var client Client
+		currentProtocol := protocol
+		if step.Protocol != "" {
+			currentProtocol = step.Protocol
+		}
+
+		switch currentProtocol {
+		case "nats":
+			client = ClientNATS
+		case "sqs":
+			client = ClientSQS
+		default:
+			panic("invalid protocol")
+		}
+
 		switch requestType {
 		case "publish":
 			client.Publish(ctx, step, dryRun)

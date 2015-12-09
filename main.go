@@ -6,7 +6,8 @@ import (
 	"os"
 )
 
-var MQClient Client
+var ClientNATS Client
+var ClientSQS Client
 
 func main() {
 	// debug := flag.Bool("debug", false, "debug mode")
@@ -18,16 +19,11 @@ func main() {
 	requestSubject := flag.String("request", "", "nats request subject")
 	subscription := flag.String("subscription", "", "nats subscription subject")
 	queue := flag.String("queue", "", "nats queue")
-	clientType := flag.String("client", "nats", "queue")
 
 	flag.Parse()
 
-	switch *clientType {
-	case "sqs":
-		MQClient = new(SQSClient)
-	case "nats":
-		MQClient = new(NatsClient)
-	}
+	ClientNATS = new(NatsClient)
+	ClientSQS = new(SQSClient)
 
 	scenario := newScenario()
 
