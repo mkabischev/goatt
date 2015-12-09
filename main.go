@@ -6,6 +6,9 @@ import (
 	"os"
 )
 
+var ClientNATS Client
+var ClientSQS Client
+
 func main() {
 	// debug := flag.Bool("debug", false, "debug mode")
 	dryRun := flag.Bool("dry-run", false, "dry-run mode")
@@ -19,6 +22,9 @@ func main() {
 
 	flag.Parse()
 
+	ClientNATS = new(NatsClient)
+	ClientSQS = new(SQSClient)
+
 	scenario := newScenario()
 
 	switch {
@@ -30,7 +36,7 @@ func main() {
 		scenario.load(contents)
 	case *publishSubject != "":
 		contents, _ := loadFile(flag.Args()[0])
-		s := step{
+		s := ScenarioStep{
 			Subject: *publishSubject,
 			Type:    "publish",
 			Msg:     string(contents),
@@ -38,14 +44,14 @@ func main() {
 		scenario.Steps = append(scenario.Steps, s)
 	case *requestSubject != "":
 		contents, _ := loadFile(flag.Args()[0])
-		s := step{
+		s := ScenarioStep{
 			Subject: *requestSubject,
 			Type:    "request",
 			Msg:     string(contents),
 		}
 		scenario.Steps = append(scenario.Steps, s)
 	case *subscription != "":
-		s := step{
+		s := ScenarioStep{
 			Subject: *subscription,
 			Type:    "subscribe",
 			Msg:     *queue,

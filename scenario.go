@@ -8,18 +8,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type jsonMap map[string]interface{}
+type JsonMap map[string]interface{}
 
-type step struct {
-	Subject string "target"
-	Type    string "type"
-	Msg     string "body"
+type ScenarioStep struct {
+	Subject  string "target"
+	Type     string "type"
+	Msg      string "body"
+	Protocol string "protocol"
 }
 
 type yamlScenario struct {
 	Common    map[string]interface{} "common"
 	Constants map[string]interface{} "constants"
-	Steps     []step                 ",flow"
+	Steps     []ScenarioStep         ",flow"
 }
 
 func (ys *yamlScenario) load(contents []byte) error {
@@ -31,8 +32,8 @@ func (ys *yamlScenario) load(contents []byte) error {
 }
 
 func (ys *yamlScenario) play(dryRun bool) error {
-	client := new(natsClient)
-	client.Init(ys.Common["server"].(string))
+	ClientNATS.Init(ys.Common["server"].(string), ys.Common["service"].(string))
+	ClientSQS.Init(ys.Common["server"].(string), ys.Common["service"].(string))
 
 	timeout := 1 * time.Microsecond
 	tms := ys.Common["timeout"]
@@ -40,6 +41,11 @@ func (ys *yamlScenario) play(dryRun bool) error {
 		if value, err := time.ParseDuration(tms.(string)); err == nil {
 			timeout = value
 		}
+	}
+
+	var protocol string
+	if proto := ys.Common["protocol"]; proto != nil {
+		protocol = proto.(string)
 	}
 
 	ctx := InitContext(ys.Constants)
@@ -62,13 +68,29 @@ func (ys *yamlScenario) play(dryRun bool) error {
 		if step.Type != "" {
 			requestType = step.Type
 		}
+
+		var client Client
+		currentProtocol := protocol
+		if step.Protocol != "" {
+			currentProtocol = step.Protocol
+		}
+
+		switch currentProtocol {
+		case "nats":
+			client = ClientNATS
+		case "sqs":
+			client = ClientSQS
+		default:
+			panic("invalid protocol")
+		}
+
 		switch requestType {
 		case "publish":
-			client.publish(ctx, step, dryRun)
+			client.Publish(ctx, step, dryRun)
 		case "request":
-			client.request(ctx, step, dryRun)
+			client.Request(ctx, step, dryRun)
 		case "subscription":
-			client.subscribe(ctx, step, dryRun)
+			client.Subscribe(ctx, step, dryRun)
 		default:
 			fmt.Fprintf(os.Stderr, "unknown mode")
 		}

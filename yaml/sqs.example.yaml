@@ -1,0 +1,61 @@
+common:
+  service: ms_providers
+  delay: 1s
+  protocol: sqs
+  server: "juno_sqs:9324"
+  method: request # request/publish
+
+constants:
+  src: "gateway"
+
+# available variables
+# {{.Constants.<CONSTANT_NAME>}} - get constant value by name. ex.: {{.Constants.src}}
+# {{.UUID}} - generate new uuid every request
+# {{.Step.UUID}} - generate new uuid once per step
+# {{.Session.UUID}} - generate new uuid once per session
+# {{.Result.<NAME>.<NAME>}} - get last result field
+
+steps:
+#  - target: "{{.Session.UUID}}"
+#    type: publish
+#    body: |-
+#      {
+#        "id": "{{.UUID}}",
+#        "error": {},
+#        "src": "{{.Constants.src}}",
+#        "body": {
+#          "id": "{{.UUID}}"
+#        },
+#        "meta": {
+#          "start_time": "9999999999999",
+#          "reply_queue": "{{.Step.UUID}}"
+#        }
+#      }
+#  - target: "{{.UUID}}"
+#    type: request
+#    body: |-
+#      {
+#        "id": "{{.UUID}}",
+#        "error": {},
+#        "src": "{{.Constants.src}}",
+#        "body": {
+#          "id": "{{.UUID}}"
+#        },
+#        "meta": {
+#          "reply_queue": "{{.Session.UUID}}"
+#        }
+#      }
+  - target: "ms_providers_sqs-request"
+    type: request
+    body: |-
+      {
+        "id": "{{.UUID}}",
+        "error": {},
+        "src": "{{.Constants.src}}",
+        "body": {
+          "id": "{{.UUID}}"
+        },
+        "meta": {
+          "reply_queue": "{{.Session.UUID}}"
+        }
+      }
