@@ -31,9 +31,33 @@ func (ys *yamlScenario) load(contents []byte) error {
 	return nil
 }
 
+func (ys *yamlScenario) natsServer() string {
+	if nats, ok := ys.Common["server_nats"]; ok && nats.(string) != "" {
+		return nats.(string)
+	}
+	if ys.Common["protocol"] == "nats" {
+		return ys.Common["server"].(string)
+	}
+	return ""
+}
+
+func (ys *yamlScenario) sqsServer() string {
+	if sqs, ok := ys.Common["server_sqs"]; ok && sqs.(string) != "" {
+		return sqs.(string)
+	}
+	if ys.Common["protocol"] == "sqs" {
+		return ys.Common["server"].(string)
+	}
+	return ""
+}
+
 func (ys *yamlScenario) play(dryRun bool) error {
-	ClientNATS.Init(ys.Common["server"].(string), ys.Common["service"].(string))
-	ClientSQS.Init(ys.Common["server"].(string), ys.Common["service"].(string))
+	if nats := ys.natsServer(); nats != "" {
+		ClientNATS.Init(nats, ys.Common["service"].(string))
+	}
+	if sqs := ys.sqsServer(); sqs != "" {
+		ClientSQS.Init(sqs, ys.Common["service"].(string))
+	}
 
 	timeout := 1 * time.Microsecond
 	tms := ys.Common["timeout"]
