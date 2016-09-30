@@ -1,4 +1,4 @@
-# goatt
+# goatt [![Build Status](https://travis-ci.org/mguzelevich/goatt.svg?branch=master)](https://travis-ci.org/mguzelevich/goatt)
 
 API testing tools. Some tools for automation testing protocols (mq, http, etc.)
 
