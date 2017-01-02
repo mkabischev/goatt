@@ -14,7 +14,7 @@ import (
 )
 
 type SQSClient struct {
-	Conn *sqs.SQS
+	Conn    *sqs.SQS
 	Service string
 }
 

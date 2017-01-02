@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/apcera/nats"
+	"github.com/nats-io/go-nats"
 )
 
 var timeout = 500 * time.Millisecond
