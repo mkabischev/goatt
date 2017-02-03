@@ -1,4 +1,4 @@
-package main
+package goatt
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package main
+package goatt
 
 import (
 	"fmt"
@@ -23,7 +23,10 @@ type yamlScenario struct {
 	Steps     []ScenarioStep         ",flow"
 }
 
-func (ys *yamlScenario) load(contents []byte) error {
+var ClientNATS Client
+var ClientSQS Client
+
+func (ys *yamlScenario) Load(contents []byte) error {
 	if err := yaml.Unmarshal(contents, ys); err != nil {
 		fmt.Fprintf(os.Stderr, "Could not parse YAML scenario file: %s\n", err)
 		return err
@@ -51,7 +54,7 @@ func (ys *yamlScenario) sqsServer() string {
 	return ""
 }
 
-func (ys *yamlScenario) play(dryRun bool) error {
+func (ys *yamlScenario) Play(dryRun bool) error {
 	if nats := ys.natsServer(); nats != "" {
 		ClientNATS.Init(nats, ys.Common["service"].(string))
 	}
@@ -122,7 +125,9 @@ func (ys *yamlScenario) play(dryRun bool) error {
 	return nil
 }
 
-func newScenario() *yamlScenario {
+func NewScenario() *yamlScenario {
 	scenario := new(yamlScenario)
+	ClientNATS = new(NatsClient)
+	ClientSQS = new(SQSClient)
 	return scenario
 }

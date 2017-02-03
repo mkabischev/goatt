@@ -4,10 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-)
 
-var ClientNATS Client
-var ClientSQS Client
+	"github.com/mguzelevich/goatt"
+)
 
 func main() {
 	// debug := flag.Bool("debug", false, "debug mode")
@@ -22,10 +21,7 @@ func main() {
 
 	flag.Parse()
 
-	ClientNATS = new(NatsClient)
-	ClientSQS = new(SQSClient)
-
-	scenario := newScenario()
+	scenario := goatt.NewScenario()
 
 	switch {
 	// case *debug:
@@ -33,10 +29,10 @@ func main() {
 	case *yamlFile != "":
 		fmt.Fprintf(os.Stderr, "scenario mode\n")
 		contents, _ := loadFile(*yamlFile)
-		scenario.load(contents)
+		scenario.Load(contents)
 	case *publishSubject != "":
 		contents, _ := loadFile(flag.Args()[0])
-		s := ScenarioStep{
+		s := goatt.ScenarioStep{
 			Subject: *publishSubject,
 			Type:    "publish",
 			Msg:     string(contents),
@@ -44,14 +40,14 @@ func main() {
 		scenario.Steps = append(scenario.Steps, s)
 	case *requestSubject != "":
 		contents, _ := loadFile(flag.Args()[0])
-		s := ScenarioStep{
+		s := goatt.ScenarioStep{
 			Subject: *requestSubject,
 			Type:    "request",
 			Msg:     string(contents),
 		}
 		scenario.Steps = append(scenario.Steps, s)
 	case *subscription != "":
-		s := ScenarioStep{
+		s := goatt.ScenarioStep{
 			Subject: *subscription,
 			Type:    "subscribe",
 			Msg:     *queue,
@@ -60,5 +56,5 @@ func main() {
 	default:
 		fmt.Fprintf(os.Stderr, "unknown mode")
 	}
-	scenario.play(*dryRun)
+	scenario.Play(*dryRun)
 }
