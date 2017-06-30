@@ -18,6 +18,8 @@ func main() {
 	requestSubject := flag.String("request", "", "nats request subject")
 	subscription := flag.String("subscription", "", "nats subscription subject")
 	queue := flag.String("queue", "", "nats queue")
+	steps := flag.Int("steps", 0, "")
+	offset := flag.Int("offset", 0, "")
 
 	flag.Parse()
 
@@ -56,5 +58,5 @@ func main() {
 	default:
 		fmt.Fprintf(os.Stderr, "unknown mode")
 	}
-	scenario.Play(*dryRun)
+	scenario.Play(*dryRun, *offset, *steps)
 }

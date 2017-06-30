@@ -54,7 +54,7 @@ func (ys *yamlScenario) sqsServer() string {
 	return ""
 }
 
-func (ys *yamlScenario) Play(dryRun bool) error {
+func (ys *yamlScenario) Play(dryRun bool, offset, steps int) error {
 	if nats := ys.natsServer(); nats != "" {
 		ClientNATS.Init(nats, ys.Common["service"].(string))
 	}
@@ -78,6 +78,14 @@ func (ys *yamlScenario) Play(dryRun bool) error {
 	ctx := InitContext(ys.Constants)
 
 	for i, step := range ys.Steps {
+		if i < offset {
+			continue
+		}
+
+		if steps != 0 && i >= steps+offset {
+			break
+		}
+
 		time.Sleep(timeout)
 		ctx.ClearStep()
 		ctx.Session["stepIdx"] = i + 1
